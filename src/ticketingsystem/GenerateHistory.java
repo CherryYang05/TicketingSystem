@@ -33,15 +33,15 @@ class myInt {
 }
 
 public class GenerateHistory {
-	static int threadnum;// input
-	static int testnum;// input
-	static boolean isSequential;// input
-	static int msec = 0;
-	static int nsec = 0;
-	static int totalPc;
+	static int threadnum;		// input
+	static int testnum;			// input
+	static boolean isSequential;// input 第三个参数
+	static int msec = 0;		// TrainConfig 中的第 4 个参数
+	static int nsec = 0;		// TrainConfig 中的第 5 个参数
+	static int totalPc;			// ?
 
 	static AtomicInteger sLock = new AtomicInteger(0); // Synchronization Lock
-	static boolean[] fin;
+	static boolean[] fin;		// ？
 
 	protected static boolean exOthNotFin(int tNum, int tid) {
 		boolean flag = false;
@@ -79,10 +79,19 @@ public class GenerateHistory {
 
 	static TicketingDS tds;
 	final static List<String> methodList = new ArrayList<String>();
+	// 存放三种方法所占的比例
 	final static List<Integer> freqList = new ArrayList<Integer>();
+
+	// 当前已有的车票
 	final static List<Ticket> currentTicket = new ArrayList<Ticket>();
+
+	// 当前方法执行的结果（true/false）
 	final static List<String> currentRes = new ArrayList<String>();
+
+	// 已经售出的车票，用于查询退票
 	final static ArrayList<List<Ticket>> soldTicket = new ArrayList<List<Ticket>>();
+
+	// 初始化锁，要保证初始化成功
 	volatile static boolean initLock = false;
 	// final static AtomicInteger tidGen = new AtomicInteger(0);
 	final static Random rand = new Random();
@@ -110,6 +119,7 @@ public class GenerateHistory {
 		return "passenger" + uid;
 	}
 
+	// 读配置文件（车次总数、每个列车的车厢总数、车厢座位数、经停站数以及三种业务的比例）
 	private static boolean readConfig(String filename) {
 		try {
 			Scanner scanner = new Scanner(new File(filename));
@@ -153,10 +163,16 @@ public class GenerateHistory {
 				+ ticket.arrival + " " + ticket.seat + " " + currentRes.get(ThreadId.get()));
 	}
 
+
+	/**
+	 * 处理三种业务逻辑：购票，查询和退票
+	 * @param num 退票为0，购票为1，查询为2
+	 * @return
+	 */
 	public static boolean execute(int num) {
 		int route, departure, arrival;
 		Ticket ticket = new Ticket();
-		;
+
 		switch (num) {
 			case 0:// refund
 				if (soldTicket.get(ThreadId.get()).size() == 0)
@@ -191,15 +207,20 @@ public class GenerateHistory {
 				currentRes.set(ThreadId.get(), "true");
 				soldTicket.get(ThreadId.get()).add(ticket);
 				return true;
-			case 2:
+			case 2:// inquiry
 				ticket.passenger = getPassengerName();
+				// 随机获得一个车次
 				ticket.route = rand.nextInt(routenum) + 1;
+				// 随机获得一个出发地
 				ticket.departure = rand.nextInt(stationnum - 1) + 1;
-				ticket.arrival = ticket.departure + rand.nextInt(stationnum - ticket.departure) + 1; // arrival is
-																										// always
-																										// greater than
-																										// departure
+				// 随机获得一个目的地（目的地应该比出发地编号大）
+				ticket.arrival = ticket.departure + rand.nextInt(stationnum - ticket.departure) + 1; 
+
+				/*
+					通过 TicketDS 的 inquiry 方法查询余票数
+				 */
 				ticket.seat = tds.inquiry(ticket.route, ticket.departure, ticket.arrival);
+
 				currentTicket.set(ThreadId.get(), ticket);
 				currentRes.set(ThreadId.get(), "true");
 				return true;
@@ -230,13 +251,16 @@ public class GenerateHistory {
 		nsec = Integer.parseInt(args[4]);
 		readConfig("TrainConfig");
 		Thread[] threads = new Thread[threadnum];
+		// 
 		myInt barrier = new myInt();
 		fin = new boolean[threadnum];
 		final long startTime = System.nanoTime();
 
+		// START
 		for (int i = 0; i < threadnum; i++) {
 			threads[i] = new Thread(new Runnable() {
 				public void run() {
+					// 第一个线程执行需要初始化
 					if (ThreadId.get() == 0) {
 						initialization();
 						initLock = true;
@@ -246,15 +270,19 @@ public class GenerateHistory {
 						}
 					}
 					for (int k = 0; k < testnum; k++) {
-						int sel = rand.nextInt(totalPc);
-						int cnt = 0;
+						int sel = rand.nextInt(totalPc);		// ？
+						int cnt = 0;							// ？
+						// 如果串行执行
 						if (isSequential) {
 							while (ThreadId.get() != barrier.value && exOthNotFin(threadnum, ThreadId.get()) == true) {
 							}
 							SLOCK_TAKE();
 						}
-
+						// 依次处理业务，这里是三种
 						for (int j = 0; j < methodList.size(); j++) {
+							/*
+							 * 按照配置文件中的三种业务的比例进行处理 ？？？
+							 */
 							if (sel >= cnt && sel < cnt + freqList.get(j)) {
 								if (msec != 0 || nsec != 0) {
 									try {
@@ -264,7 +292,10 @@ public class GenerateHistory {
 									}
 								}
 								long preTime = System.nanoTime() - startTime;
+
+								/* 开始执行业务逻辑 */ 
 								boolean flag = execute(j);
+
 								long postTime = System.nanoTime() - startTime;
 								if (flag) {
 									print(preTime, postTime, methodList.get(j));

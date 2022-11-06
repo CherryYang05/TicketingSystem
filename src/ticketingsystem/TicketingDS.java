@@ -1,51 +1,87 @@
 package ticketingsystem;
 
+import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicLong;
+
 public class TicketingDS implements TicketingSystem {
 
-	public int routenum;
-	public int coachnum;
-	public int seatnum;
-	public int stationnum;
-	public int threadnum;
+    public int routenum;
+    public int coachnum;
+    public int seatnum;
+    public int stationnum;
+    public int threadnum;
 
-	public TicketingDS(int routenum, int coachnum, int seatnum, int stationnum, int threadnum) {
-		this.routenum = routenum;
-		this.coachnum = coachnum;
-		this.seatnum = seatnum;
-		this.stationnum = stationnum;
-		this.threadnum = threadnum;
-	}
+    private AtomicLong ticketID; // 车票 ID，不能重复
+    // 记录已经售出的车票
+    // private HashMap<>
+    
+    // 存放所有车次的信息
+    public RouteDS[] rDS;
 
-	@Override
-	public Ticket buyTicket(String passenger, int route, int departure, int arrival) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    public TicketingDS(int routenum, int coachnum, int seatnum, int stationnum, int threadnum) {
+        this.routenum = routenum;
+        this.coachnum = coachnum;
+        this.seatnum = seatnum;
+        this.stationnum = stationnum;
+        this.threadnum = threadnum;
 
-	@Override
-	public int inquiry(int route, int departure, int arrival) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+        ticketID = new AtomicLong(0);
 
-	@Override
-	public boolean refundTicket(Ticket ticket) {
-		// TODO Auto-generated method stub
-		return false;
-	}
+        // 初始化每个车次的车厢数组
+        rDS = new RouteDS[routenum + 1];
+        for (int i = 1; i <= routenum; i++) {
+            rDS[i] = new RouteDS(coachnum, seatnum, stationnum);
+        }
+    }
 
-	@Override
-	public boolean buyTicketReplay(Ticket ticket) {
-		// TODO Auto-generated method stub
-		return false;
-	}
+    @Override
+    public Ticket buyTicket(String passenger, int route, int departure, int arrival) {
+        Ticket ticket = new Ticket();
 
-	@Override
-	public boolean refundTicketReplay(Ticket ticket) {
-		// TODO Auto-generated method stub
-		return false;
-	}
+        // 填写车票信息
+        ticket.tid = ticketID.incrementAndGet();
+        ticket.passenger = passenger;
+        ticket.arrival = arrival;
+        ticket.departure = departure;
+        ticket.route = route;               // 车次号
+        // 随机获得可用车厢号
+        int coachNum = rDS[route].getCoachNum(route, departure, arrival);  
+        if (coachNum == 0) {
+            return null;
+        }
+        ticket.coach = coachNum;
+        // 随机获得可用座位号
+        int seatNum = rDS[route].cDS[coachNum].getSeatNum(coachNum, departure, arrival);    
+        if (seatNum == 0) {
+            return null;
+        }
+        ticket.seat = seatNum;
+        return ticket;
+    }
 
-	// ToDo
+    /**
+     * 查询余票
+     */
+    @Override
+    public int inquiry(int route, int departure, int arrival) {
+        return rDS[route].inquiry(departure, arrival);
+    }
+
+    @Override
+    public boolean refundTicket(Ticket ticket) {
+        return false;
+    }
+
+    @Override
+    public boolean buyTicketReplay(Ticket ticket) {
+        return false;
+    }
+
+    @Override
+    public boolean refundTicketReplay(Ticket ticket) {
+        return false;
+    }
+
+    // ToDo
 
 }

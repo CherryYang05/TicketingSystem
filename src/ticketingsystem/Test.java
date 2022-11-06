@@ -1,6 +1,6 @@
 package ticketingsystem;
 
-public class Test {
+public class Test extends Object {
 
 	public static int routenum = 5;
 	public static int coachnum = 8;
@@ -11,6 +11,12 @@ public class Test {
 	public static void main(String[] args) throws InterruptedException {
         
 		final TicketingDS tds = new TicketingDS(routenum, coachnum, seatnum, stationnum, threadnum);
+		int res = tds.inquiry(1, 1, 3);
+		System.out.println(res);
 
+		for (int i = 0; i < 10; i++) {
+			Ticket ticket = tds.buyTicket("Cherry", 1, 1, 3);
+			System.out.println(ticket.toString());
+		}
 	}
 }
