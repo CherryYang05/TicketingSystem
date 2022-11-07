@@ -29,7 +29,7 @@ public class CoachDS {
      * @return
      */
     public int getSeatNum(int coach, int departure, int arrival) {
-        for (int i = 1; i < seatnum; i++) {
+        for (int i = 1; i <= seatnum; i++) {
             if (!seatSold[i]) {
                 seatSold[i] = true;
                 return i;

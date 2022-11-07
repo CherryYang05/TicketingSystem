@@ -7,7 +7,7 @@ import java.util.Random;
  * 管理某趟列车的每一个车厢
  */
 public class RouteDS {
-    
+
     private int coachnum;
     private int seatnum;
     private int stationnum;
@@ -17,6 +17,7 @@ public class RouteDS {
 
     // 存放所有车厢的信息
     public CoachDS[] cDS;
+
     /*
      * 一趟列车的车厢数
      */
@@ -35,13 +36,16 @@ public class RouteDS {
 
     /**
      * 给一个列车号，随机获得一个可分配的车厢号，若无可用返回 0
+     * 
      * @param route
      * @return
      */
     public int getCoachNum(int route, int departure, int arrival) {
-        int coachNum = new Random().nextInt(coachnum) + 1;
-        if (seatLeftInCoach[coachNum] > 0 && seatLeftInCoach[coachNum] <= seatnum) {
-            return coachNum;
+        for (int i = 1; i <= coachnum; i++) {
+            if (seatLeftInCoach[i] > 0 && seatLeftInCoach[i] <= seatnum) {
+                seatLeftInCoach[i]--;
+                return i;
+            }
         }
         return 0;
     }

@@ -34,6 +34,9 @@ public class TicketingDS implements TicketingSystem {
         }
     }
 
+    /**
+     * 购买车票功能
+     */
     @Override
     public Ticket buyTicket(String passenger, int route, int departure, int arrival) {
         Ticket ticket = new Ticket();
@@ -44,9 +47,11 @@ public class TicketingDS implements TicketingSystem {
         ticket.arrival = arrival;
         ticket.departure = departure;
         ticket.route = route;               // 车次号
+
         // 随机获得可用车厢号
         int coachNum = rDS[route].getCoachNum(route, departure, arrival);  
         if (coachNum == 0) {
+            // System.out.println("票已经卖完了");
             return null;
         }
         ticket.coach = coachNum;
@@ -60,13 +65,16 @@ public class TicketingDS implements TicketingSystem {
     }
 
     /**
-     * 查询余票
+     * 查询余票功能
      */
     @Override
     public int inquiry(int route, int departure, int arrival) {
         return rDS[route].inquiry(departure, arrival);
     }
 
+    /**
+     * 退票功能
+     */
     @Override
     public boolean refundTicket(Ticket ticket) {
         return false;
@@ -81,7 +89,4 @@ public class TicketingDS implements TicketingSystem {
     public boolean refundTicketReplay(Ticket ticket) {
         return false;
     }
-
-    // ToDo
-
 }
