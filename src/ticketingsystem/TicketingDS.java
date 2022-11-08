@@ -13,8 +13,8 @@ public class TicketingDS implements TicketingSystem {
 
     private AtomicLong ticketID; // 车票 ID，不能重复
     // 记录已经售出的车票
-    // private HashMap<>
-    
+    private HashMap<Long, Ticket> soldTicket;
+
     // 存放所有车次的信息
     public RouteDS[] rDS;
 
@@ -26,6 +26,8 @@ public class TicketingDS implements TicketingSystem {
         this.threadnum = threadnum;
 
         ticketID = new AtomicLong(0);
+
+        soldTicket = new HashMap<>();
 
         // 初始化每个车次的车厢数组
         rDS = new RouteDS[routenum + 1];
@@ -46,21 +48,27 @@ public class TicketingDS implements TicketingSystem {
         ticket.passenger = passenger;
         ticket.arrival = arrival;
         ticket.departure = departure;
-        ticket.route = route;               // 车次号
+        ticket.route = route; // 车次号
 
         // 随机获得可用车厢号
-        int coachNum = rDS[route].getCoachNum(route, departure, arrival);  
+        int coachNum = rDS[route].getCoachNum(departure, arrival);
+        // RouteDS tmp = rDS[route];
+        // for (int i = 1; i <= coachnum; i++) {
+        // System.out.println("Coach " + i + "'s seat left: " +
+        // tmp.getSeatLeftInCoach()[i]);
+        // }
         if (coachNum == 0) {
-            // System.out.println("票已经卖完了");
+            System.out.println("票已经卖完了");
             return null;
         }
         ticket.coach = coachNum;
         // 随机获得可用座位号
-        int seatNum = rDS[route].cDS[coachNum].getSeatNum(coachNum, departure, arrival);    
+        int seatNum = rDS[route].cDS[coachNum].getSeatNum(coachNum, departure, arrival);
         if (seatNum == 0) {
             return null;
         }
         ticket.seat = seatNum;
+        soldTicket.put(ticket.tid, ticket);
         return ticket;
     }
 
@@ -77,6 +85,28 @@ public class TicketingDS implements TicketingSystem {
      */
     @Override
     public boolean refundTicket(Ticket ticket) {
+
+        // 这里为细粒度锁做准备
+        Long tid = ticket.tid;
+        if (isTheSameTicket(tid, ticket)) {
+            soldTicket.remove(tid);
+            return rDS[ticket.coach].refundTicket(ticket.coach, ticket.seat, ticket.departure, ticket.arrival);
+        }
+
+        return false;
+    }
+
+    private boolean isTheSameTicket(Long tid, Ticket ticket) {
+        Ticket tmp = soldTicket.get(tid);
+
+        if (ticket.tid == tmp.tid
+                && ticket.passenger == tmp.passenger
+                && ticket.route == tmp.route 
+                && ticket.coach == tmp.seat 
+                && ticket.departure == tmp.departure
+                && ticket.arrival == tmp.arrival) {
+                    return true;
+        }
         return false;
     }
 

@@ -40,7 +40,7 @@ public class RouteDS {
      * @param route
      * @return
      */
-    public int getCoachNum(int route, int departure, int arrival) {
+    public int getCoachNum(int departure, int arrival) {
         for (int i = 1; i <= coachnum; i++) {
             if (seatLeftInCoach[i] > 0 && seatLeftInCoach[i] <= seatnum) {
                 seatLeftInCoach[i]--;
@@ -60,5 +60,25 @@ public class RouteDS {
             totalSeatAvailable += cDS[i].inquiry(departure, arrival);
         }
         return totalSeatAvailable;
+    }
+
+
+    /**
+     * 退票，将相应车厢的座位置空
+     * @param coach
+     * @param departure
+     * @param arrival
+     * @return
+     */
+    public boolean refundTicket(int coach, int seat, int departure, int arrival) {
+        if (seatLeftInCoach[coach] > 0 && seatLeftInCoach[coach] < seatnum) {
+            seatLeftInCoach[coach]--;
+        }
+        return cDS[coach].refundTicket(seat, departure, arrival);
+    }
+
+
+    public int[] getSeatLeftInCoach() {
+        return seatLeftInCoach;
     }
 }

@@ -38,6 +38,21 @@ public class CoachDS {
         return 0;
     }
 
+    /**
+     * 退票，将对应的座位置空
+     * @param seat
+     * @param departure
+     * @param arrival
+     * @return
+     */
+    public boolean refundTicket(int seat, int departure, int arrival) {
+        if (seatSold[seat] == false) {
+            return false;
+        }
+        seatSold[seat] = false;
+        return true;
+    }
+
     public int inquiry(int departure, int arrival) {
         return seatnum;
     }

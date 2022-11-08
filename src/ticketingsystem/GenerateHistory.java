@@ -238,29 +238,29 @@ public class GenerateHistory {
 
     /*********** VeriLin ***********/
     public static void main(String[] args) throws InterruptedException {
-        // if (args.length != 5) {
-        // 	System.out.println(
-        // 			"The arguments of GenerateHistory is threadNum,  testNum, isSequential(0/1), delay(millionsec), delay(nanosec)");
-        // 	return;
-        // }
-        // threadnum = Integer.parseInt(args[0]);
-        // testnum = Integer.parseInt(args[1]);
-        // if (args[2].equals("0")) {
-        // 	isSequential = false;
-        // } else if (args[2].equals("1")) {
-        // 	isSequential = true;
-        // } else {
-        // 	System.out.println("The arguments of GenerateHistory is threadNum,  testNum, isSequential(0/1)");
-        // 	return;
-        // }
-        // msec = Integer.parseInt(args[3]);
-        // nsec = Integer.parseInt(args[4]);
+        if (args.length != 5) {
+        	System.out.println(
+        			"The arguments of GenerateHistory is threadNum,  testNum, isSequential(0/1), delay(millionsec), delay(nanosec)");
+        	return;
+        }
+        threadnum = Integer.parseInt(args[0]);
+        testnum = Integer.parseInt(args[1]);
+        if (args[2].equals("0")) {
+        	isSequential = false;
+        } else if (args[2].equals("1")) {
+        	isSequential = true;
+        } else {
+        	System.out.println("The arguments of GenerateHistory is threadNum,  testNum, isSequential(0/1)");
+        	return;
+        }
+        msec = Integer.parseInt(args[3]);
+        nsec = Integer.parseInt(args[4]);
 
-        threadnum = 3;
-        testnum = 100;
-        isSequential = true;
-        msec = 0;
-        nsec = 0;
+        // threadnum = 1;
+        // testnum = 300;
+        // isSequential = true;
+        // msec = 0;
+        // nsec = 0;
 
         readConfig("TrainConfig");
         Thread[] threads = new Thread[threadnum];
