@@ -51,23 +51,20 @@ public class TicketingDS implements TicketingSystem {
         ticket.route = route; // 车次号
 
         // 随机获得可用车厢号
-        int coachNum = rDS[route].getCoachNum(departure, arrival);
+        CoachSeat coachSeat = rDS[route].getSeatNum(ticket.tid, departure, arrival);
         // RouteDS tmp = rDS[route];
         // for (int i = 1; i <= coachnum; i++) {
         // System.out.println("Coach " + i + "'s seat left: " +
         // tmp.getSeatLeftInCoach()[i]);
         // }
-        if (coachNum == 0) {
-            System.out.println("票已经卖完了");
+        if (coachSeat == null) {
+            // System.out.println("票已经卖完了");
+            // RouteDS tmp = rDS[route];
+            
             return null;
         }
-        ticket.coach = coachNum;
-        // 随机获得可用座位号
-        int seatNum = rDS[route].cDS[coachNum].getSeatNum(coachNum, departure, arrival);
-        if (seatNum == 0) {
-            return null;
-        }
-        ticket.seat = seatNum;
+        ticket.coach = coachSeat.coachNum;
+        ticket.seat = coachSeat.seatNum;
         soldTicket.put(ticket.tid, ticket);
         return ticket;
     }
@@ -90,7 +87,7 @@ public class TicketingDS implements TicketingSystem {
         Long tid = ticket.tid;
         if (isTheSameTicket(tid, ticket)) {
             soldTicket.remove(tid);
-            return rDS[ticket.coach].refundTicket(ticket.coach, ticket.seat, ticket.departure, ticket.arrival);
+            return rDS[ticket.coach].refundTicket(ticket);
         }
 
         return false;
@@ -101,11 +98,11 @@ public class TicketingDS implements TicketingSystem {
 
         if (ticket.tid == tmp.tid
                 && ticket.passenger == tmp.passenger
-                && ticket.route == tmp.route 
-                && ticket.coach == tmp.seat 
+                && ticket.route == tmp.route
+                && ticket.coach == tmp.seat
                 && ticket.departure == tmp.departure
                 && ticket.arrival == tmp.arrival) {
-                    return true;
+            return true;
         }
         return false;
     }
@@ -118,5 +115,19 @@ public class TicketingDS implements TicketingSystem {
     @Override
     public boolean refundTicketReplay(Ticket ticket) {
         return false;
+    }
+
+}
+
+/**
+ * 存放 Coach 和 Seat 号
+ */
+class CoachSeat {
+    int coachNum;
+    int seatNum;
+
+    public CoachSeat(int coachNum, int seatNum) {
+        this.coachNum = coachNum;
+        this.seatNum = seatNum;
     }
 }

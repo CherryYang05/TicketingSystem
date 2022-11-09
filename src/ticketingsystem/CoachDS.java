@@ -1,59 +1,62 @@
 package ticketingsystem;
 
-import java.util.Arrays;
-import java.util.HashMap;
-
 /**
- * 管理某一个车次中那个列车的每一个车厢，管理某一个车厢的座位
+ * 管理某一个车次中那个列车的每一个车厢，管理某一个车厢的所有座位
  */
 public class CoachDS {
     private int seatnum;
-    private int stationnum;
 
-    // 座位是否被购买(标号从 1 开始)
-    private volatile boolean[] seatSold;
+    // 记录每个座位的购票情况，一个座位可能同时存在几张票
+    private volatile SeatDS[] sDS;
     
     /*
      * 一个车厢的座位数
      */
     CoachDS(int seatnum, int stationnum) {
         this.seatnum = seatnum;
-        this.stationnum = stationnum;
-        seatSold = new boolean[seatnum + 1];
-        Arrays.fill(seatSold, false);
+        sDS = new SeatDS[seatnum + 1];
+        for (int i = 1; i <= seatnum; i++ ) {
+            sDS[i] = new SeatDS(stationnum);
+        }
     }
 
     /**
      * 给一个车厢号，随机获得一个可用的座位号，若无可用返回 0
-     * @param coach
+     * @param tid
+     * @param departure
+     * @param arrival
      * @return
      */
-    public int getSeatNum(int coach, int departure, int arrival) {
+    public int getSeatNum(long tid, int departure, int arrival) {
         for (int i = 1; i <= seatnum; i++) {
-            if (!seatSold[i]) {
-                seatSold[i] = true;
+            // 购票原则：按照已经售出的座位优先购买
+            if (sDS[i].getSeatNum(tid, departure, arrival)) {
                 return i;
-            }
+            }            
         }
         return 0;
     }
 
     /**
      * 退票，将对应的座位置空
+     * @param tid
      * @param seat
      * @param departure
      * @param arrival
      * @return
      */
-    public boolean refundTicket(int seat, int departure, int arrival) {
-        if (seatSold[seat] == false) {
-            return false;
-        }
-        seatSold[seat] = false;
-        return true;
+    public boolean refundTicket(Ticket ticket) {
+        return sDS[ticket.seat].refundTicket(ticket);
     }
 
     public int inquiry(int departure, int arrival) {
-        return seatnum;
+        int seatAvailable = 0;
+        for (int i = 1; i <= seatnum; i++) {
+            
+            if (sDS[i].inquiry(departure, arrival)) {
+                seatAvailable++;
+            }
+        }
+        return seatAvailable;
     }
 }
