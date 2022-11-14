@@ -238,32 +238,32 @@ public class GenerateHistory {
 
     /*********** VeriLin ***********/
     public static void main(String[] args) throws InterruptedException {
-        // if (args.length != 5) {
-        // 	System.out.println(
-        // 			"The arguments of GenerateHistory is threadNum,  testNum, isSequential(0/1), delay(millionsec), delay(nanosec)");
-        // 	return;
-        // }
-        // threadnum = Integer.parseInt(args[0]);
-        // testnum = Integer.parseInt(args[1]);
-        // if (args[2].equals("0")) {
-        // 	isSequential = false;
-        // } else if (args[2].equals("1")) {
-        // 	isSequential = true;
-        // } else {
-        // 	System.out.println("The arguments of GenerateHistory is threadNum,  testNum, isSequential(0/1)");
-        // 	return;
-        // }
-        // msec = Integer.parseInt(args[3]);
-        // nsec = Integer.parseInt(args[4]);
+        if (args.length != 5) {
+        	System.out.println(
+        			"The arguments of GenerateHistory is threadNum,  testNum, isSequential(0/1), delay(millionsec), delay(nanosec)");
+        	return;
+        }
+        threadnum = Integer.parseInt(args[0]);
+        testnum = Integer.parseInt(args[1]);
+        if (args[2].equals("0")) {
+        	isSequential = false;
+        } else if (args[2].equals("1")) {
+        	isSequential = true;
+        } else {
+        	System.out.println("The arguments of GenerateHistory is threadNum,  testNum, isSequential(0/1)");
+        	return;
+        }
+        msec = Integer.parseInt(args[3]);
+        nsec = Integer.parseInt(args[4]);
 
-        threadnum = 1;
-        testnum = 400;
-        isSequential = true;
-        msec = 0;
-        nsec = 0;
+        // threadnum = 1;
+        // testnum = 200;
+        // isSequential = true;
+        // msec = 0;
+        // nsec = 0;
 
-        // readConfig("TrainConfig");
-        readConfig("/Users/cherry/国科大课程资料/并发数据结构和多核编程/project/TicketingSystem/src/TrainConfig");
+        readConfig("TrainConfig");
+        // readConfig("/Users/cherry/国科大课程资料/并发数据结构和多核编程/project/TicketingSystem/src/TrainConfig");
         Thread[] threads = new Thread[threadnum];
         // ?
         myInt barrier = new myInt();
@@ -274,11 +274,12 @@ public class GenerateHistory {
         for (int i = 0; i < threadnum; i++) {
             threads[i] = new Thread(new Runnable() {
                 public void run() {
-                    // 第一个线程执行需要初始化
+                    // 只有第一个线程执行需要初始化
                     if (ThreadId.get() == 0) {
                         initialization();
                         initLock = true;
                     } else {
+                        // 等待第一个线程初始化结束
                         while (!initLock) {
                             ;
                         }

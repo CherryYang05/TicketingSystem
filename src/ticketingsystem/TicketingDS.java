@@ -87,6 +87,7 @@ public class TicketingDS implements TicketingSystem {
         Long tid = ticket.tid;
         if (isTheSameTicket(tid, ticket)) {
             soldTicket.remove(tid);
+            // System.out.println("tickct.coach = " + ticket.coach);
             return rDS[ticket.coach].refundTicket(ticket);
         }
 
@@ -97,7 +98,7 @@ public class TicketingDS implements TicketingSystem {
         Ticket tmp = soldTicket.get(tid);
 
         if (ticket.tid == tmp.tid
-                && ticket.passenger == tmp.passenger
+                && ticket.passenger.equals(tmp.passenger)       // 切记这里不能用 == 判断
                 && ticket.route == tmp.route
                 && ticket.coach == tmp.seat
                 && ticket.departure == tmp.departure

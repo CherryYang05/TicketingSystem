@@ -282,7 +282,16 @@ public class Replay {
 			return;
 		}
 		String ft = args[3];
+		
 		readConfig("TrainConfig");
+
+		// threadNum = 1;
+		// String fileName = "/Users/cherry/国科大课程资料/并发数据结构和多核编程/project/TicketingSystem/src/history";
+		// isPosttime = true;
+		// String ft = "/Users/cherry/国科大课程资料/并发数据结构和多核编程/project/TicketingSystem/src/failedHistory";
+
+		// readConfig("/Users/cherry/国科大课程资料/并发数据结构和多核编程/project/TicketingSystem/src/TrainConfig");
+
 		long startMs, endMs;
 		readHistory(history, fileName);
 		initialization();
