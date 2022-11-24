@@ -256,9 +256,9 @@ public class GenerateHistory {
         msec = Integer.parseInt(args[3]);
         nsec = Integer.parseInt(args[4]);
 
-        // threadnum = 1;
+        // threadnum = 4;
         // testnum = 200;
-        // isSequential = true;
+        // isSequential = false;
         // msec = 0;
         // nsec = 0;
 

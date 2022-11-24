@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 
 /**
  * 管理每个座位，即标识每个已经售出的车票的起终点
@@ -50,28 +49,23 @@ public class SeatDS {
      */
     public boolean getSeatNum(long tid, int departure, int arrival) {
         // 加上写锁，同时只能有一个线程去找空座位
-        writeLock.lock();
-        try {
-            boolean flag = judge(departure, arrival);
+        // writeLock.lock();
+        boolean flag = judge(departure, arrival);
 
-            if (flag) {
-                ticketOnSeat++;
-                seatList.add(new Seat(tid, departure, arrival));
-            }
-            return flag;
-        } finally {
-            writeLock.unlock();
+        if (flag) {
+            ticketOnSeat++;
+            seatList.add(new Seat(tid, departure, arrival));
         }
-
+        // writeLock.unlock();
+        return flag;
     }
 
     public boolean inquiry(int departure, int arrival) {
-        // 加上读锁
-        readLock.lock();
+        // writeLock.lock();
         try {
             return judge(departure, arrival);
         } finally {
-            readLock.unlock();
+            // writeLock.unlock();
         }
     }
 
@@ -84,20 +78,26 @@ public class SeatDS {
      */
     public boolean refundTicket(Ticket ticket) {
         // 加上写锁，同时只能有一个线程去退票
-        writeLock.lock();
+        // writeLock.lock();
         try {
             boolean flag = false;
             long tid = ticket.tid;
             int departure = ticket.departure;
             int arrival = ticket.arrival;
 
-            Seat delSeat = new Seat(tid, departure, arrival);
+            Seat delSeat = null;
 
             for (Seat s : seatList) {
+                if (!s.isValid) {
+                    continue;
+                }
+                // 从已经买出的票中找到要退的票
                 if (tid == s.tid) {
                     if (departure == s.departure && arrival == s.arrival) {
                         flag = true;
                         delSeat = s;
+                        s.isValid = false;
+                        break;
                     }
                 }
             }
@@ -110,12 +110,12 @@ public class SeatDS {
             }
             return flag;
         } finally {
-            writeLock.unlock();
+            // writeLock.unlock();
         }
     }
 
     /**
-     * 根据 departure 和 arrival 判断能否找到可用座位
+     * 根据 departure 和 arrival 判断能否找到可用座位，因为在 TicketingDS 中已经判断过车票有效性，这里无需判断
      * 
      * @param departure
      * @param arrival
@@ -131,22 +131,23 @@ public class SeatDS {
             return true;
         }
 
-        if (departure >= arrival) {
-            return false;
-        }
+        // if (departure >= arrival) {
+        // return false;
+        // }
 
-        if (departure < 1 || departure > stationnum || arrival < 1 || departure > stationnum) {
-            return false;
-        }
+        // if (departure < 1 || departure > stationnum || arrival < 1 || departure >
+        // stationnum) {
+        // return false;
+        // }
 
         // 判定车站区间的票的可用性
         for (Seat s : seatList) {
             if ((departure < s.departure && arrival <= s.departure)
-                || (departure>= s.arrival && arrival > s.arrival)) {
-                    continue;
-                } else {
-                    return false;
-                }
+                    || (departure >= s.arrival && arrival > s.arrival)) {
+                continue;
+            } else {
+                return false;
+            }
         }
         return true;
     }

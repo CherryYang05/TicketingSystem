@@ -2,13 +2,11 @@
  * @Author         : Cherry
  * @Date           : 2022-11-03 08:33:27
  * @LastEditors    : Cherry
- * @LastEditTime   : 2022-11-06 18:42:58
+ * @LastEditTime   : 2022-11-21 23:08:11
  * @FilePath       : TicketingSystem.java
  * @Description    : TicketSystem 接口，TicketingDS 类需要实现该接口
  */
 package ticketingsystem;
-
-import java.util.concurrent.atomic.AtomicLong;
 
 class Ticket {
     long tid;

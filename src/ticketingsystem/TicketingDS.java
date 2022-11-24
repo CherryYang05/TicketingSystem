@@ -2,6 +2,9 @@ package ticketingsystem;
 
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class TicketingDS implements TicketingSystem {
 
@@ -17,6 +20,11 @@ public class TicketingDS implements TicketingSystem {
 
     // 存放所有车次的信息
     public RouteDS[] rDS;
+
+
+    private final ReadWriteLock lock = new ReentrantReadWriteLock(true); // 可重入锁
+    private final Lock readLock = lock.readLock(); // 读锁
+    private final Lock writeLock = lock.writeLock(); // 写锁
 
     public TicketingDS(int routenum, int coachnum, int seatnum, int stationnum, int threadnum) {
         this.routenum = routenum;
@@ -41,6 +49,12 @@ public class TicketingDS implements TicketingSystem {
      */
     @Override
     public Ticket buyTicket(String passenger, int route, int departure, int arrival) {
+        // System.out.println("Thread-" + Thread.currentThread().getId() + " buyTicket 获得锁");
+        writeLock.lock();
+        if (!judge(route, departure, arrival)) {
+            return null;
+        }
+
         Ticket ticket = new Ticket();
 
         // 填写车票信息
@@ -66,6 +80,8 @@ public class TicketingDS implements TicketingSystem {
         ticket.coach = coachSeat.coachNum;
         ticket.seat = coachSeat.seatNum;
         soldTicket.put(ticket.tid, ticket);
+        writeLock.unlock();
+        // System.out.println("Thread-" + Thread.currentThread().getId() + " buyTicket 释放锁");
         return ticket;
     }
 
@@ -74,28 +90,44 @@ public class TicketingDS implements TicketingSystem {
      */
     @Override
     public int inquiry(int route, int departure, int arrival) {
-        return rDS[route].inquiry(departure, arrival);
+        // readLock.lock();
+        // System.out.println("Thread-" + Thread.currentThread().getId() + " inquiry 获得锁");
+        writeLock.lock();
+        int res = rDS[route].inquiry(departure, arrival);
+        
+        // readLock.unlock();
+        writeLock.unlock();
+        // System.out.println("Thread-" + Thread.currentThread().getId() + " inquiry 释放锁");
+        // return rDS[route].inquiry(departure, arrival);
+        return res;
     }
-
+    
     /**
      * 退票功能
      */
     @Override
     public boolean refundTicket(Ticket ticket) {
-
+        // System.out.println("Thread-" + Thread.currentThread().getId() + " refundTicket 获得锁");
+        writeLock.lock();
         // 这里为细粒度锁做准备
         Long tid = ticket.tid;
+        boolean flag = false;
         if (isTheSameTicket(tid, ticket)) {
             soldTicket.remove(tid);
             // System.out.println("tickct.coach = " + ticket.coach);
-            return rDS[ticket.coach].refundTicket(ticket);
+            flag =  rDS[ticket.coach].refundTicket(ticket);
         }
+        writeLock.unlock();
+        // System.out.println("Thread-" + Thread.currentThread().getId() + " refundTicket 释放锁");
 
-        return false;
+        return flag;
     }
 
     private boolean isTheSameTicket(Long tid, Ticket ticket) {
         Ticket tmp = soldTicket.get(tid);
+        if (tmp == null || ticket == null) {
+            return false;
+        }
 
         if (ticket.tid == tmp.tid
                 && ticket.passenger.equals(tmp.passenger)       // 切记这里不能用 == 判断
@@ -107,6 +139,18 @@ public class TicketingDS implements TicketingSystem {
         }
         return false;
     }
+
+    /**
+     * 判断要买的车票是否是合法的车票
+     * @return boolean
+     */
+    public final boolean judge(int route, int departure, int arrival) {
+        if (route < 1 || route > routenum || departure < 1 || arrival > stationnum || arrival <= departure) {
+            return false;
+        }
+        return true;
+    }
+
 
     @Override
     public boolean buyTicketReplay(Ticket ticket) {
